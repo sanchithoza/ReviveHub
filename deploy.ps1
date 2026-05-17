@@ -3,6 +3,7 @@ param(
     [string]$ServerPort = "3001",
     [string]$ClientPort = "3000",
     [string]$NodeEnv = "production",
+    [string]$DatabasePath = "",
     [switch]$SkipBuild,
     [switch]$SetupServices
 )
@@ -14,6 +15,10 @@ $serverSource = Join-Path -Path $projectRoot -ChildPath "server"
 $clientSource = Join-Path -Path $projectRoot -ChildPath "client"
 $serverDestination = Join-Path -Path $DeploymentPath -ChildPath "server"
 $clientDestination = Join-Path -Path $DeploymentPath -ChildPath "client"
+
+if ([string]::IsNullOrEmpty($DatabasePath)) {
+    $DatabasePath = Join-Path -Path $DeploymentPath -ChildPath "data\data.db"
+}
 
 function Write-Step {
     param([string]$Message)
@@ -116,7 +121,33 @@ npm install --omit=dev
 Assert-LastExit
 Write-Success "Client production dependencies installed."
 
-# ---- Step 5: Create startup scripts ----
+# ---- Step 5: Preserve existing database ----
+Write-Step "Preserving existing database..."
+$databaseDirectory = Split-Path -Parent $DatabasePath
+if (-not (Test-Path -LiteralPath $databaseDirectory)) {
+    New-Item -ItemType Directory -Path $databaseDirectory -Force | Out-Null
+    Write-Success "Created database directory: $databaseDirectory"
+}
+
+if (Test-Path -LiteralPath $DatabasePath) {
+    Write-Success "Existing database found at: $DatabasePath (will be preserved)"
+} else {
+    Write-Host "  No existing database at: $DatabasePath (will be created on first run)" -ForegroundColor Yellow
+}
+
+# ---- Step 6: Run database migrations ----
+Write-Step "Running database migrations..."
+Set-Location -LiteralPath $serverDestination
+$env:DATABASE_PATH = $DatabasePath
+try {
+    npm run migrate
+    Write-Success "Database migrations applied."
+} catch {
+    Write-Host "  Migrations failed: $_" -ForegroundColor Red
+    throw $_
+}
+
+# ---- Step 7: Create startup scripts ----
 Write-Step "Creating startup scripts..."
 
 $serverStartupScript = @"
@@ -125,7 +156,9 @@ $serverStartupScript = @"
 Set-Location -LiteralPath `$scriptDirectory
 `$env:NODE_ENV = "$NodeEnv"
 `$env:PORT = "$ServerPort"
+`$env:DATABASE_PATH = "$DatabasePath"
 Write-Host "Starting ReviveHub server on port $ServerPort..."
+Write-Host "Database: `$env:DATABASE_PATH"
 node dist/index.js
 "@
 $serverStartupScriptPath = Join-Path -Path $serverDestination -ChildPath "start-server.ps1"
@@ -145,7 +178,7 @@ $clientStartupScriptPath = Join-Path -Path $clientDestination -ChildPath "start-
 Set-Content -Path $clientStartupScriptPath -Value $clientStartupScript
 Write-Success "Created start-client.ps1"
 
-# ---- Step 6: Optionally set up Windows services via NSSM ----
+# ---- Step 8: Optionally set up Windows services via NSSM ----
 if ($SetupServices) {
     Write-Step "Setting up Windows services..."
     $nssmCheck = Get-Command nssm.exe -ErrorAction SilentlyContinue
@@ -167,6 +200,9 @@ if ($SetupServices) {
     & $nssmPath set ReviveHub-Server AppDirectory "$serverDestination"
     & $nssmPath set ReviveHub-Client AppDirectory "$clientDestination"
 
+    & $nssmPath set ReviveHub-Server AppEnvironmentExtra "DATABASE_PATH=$DatabasePath"
+    & $nssmPath set ReviveHub-Client AppEnvironmentExtra "NEXT_PUBLIC_API_URL=http://localhost:$ServerPort/api"
+
     & $nssmPath set ReviveHub-Server Start SERVICE_AUTO_START
     & $nssmPath set ReviveHub-Client Start SERVICE_AUTO_START
 
@@ -174,11 +210,12 @@ if ($SetupServices) {
     Write-Host "  Start them with: Start-Service ReviveHub-Server, ReviveHub-Client" -ForegroundColor Yellow
 }
 
-# ---- Step 7: Summary ----
+# ---- Step 9: Summary ----
 Write-Host "`n========================================" -ForegroundColor Magenta
 Write-Host "   Deploy complete!" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host "`nDeployed to: $DeploymentPath"
+Write-Host "Database: $DatabasePath (preserved across deployments)"
 Write-Host "`nTo start manually:"
 Write-Host "  Server:  powershell -File `"$serverStartupScriptPath`""
 Write-Host "  Client:  powershell -File `"$clientStartupScriptPath`""
