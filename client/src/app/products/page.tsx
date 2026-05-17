@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Plus } from "lucide-react";
-import { api } from "@/lib/api";
+import { useProductsList, useDeleteProduct } from "@/hooks/use-products";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<any[]>([]);
+  const { data: products = [] } = useProductsList();
+  const deleteProduct = useDeleteProduct();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-
-  const load = () => api.products.list().then(setProducts);
-
-  useEffect(() => { load(); }, []);
 
   const handleDelete = (id: number) => {
     setDeleteTargetId(id);
@@ -22,10 +19,9 @@ export default function ProductsPage() {
 
   const confirmDelete = async () => {
     if (deleteTargetId === null) return;
-    await api.products.delete(deleteTargetId);
+    await deleteProduct.mutateAsync(deleteTargetId);
     setShowDeleteModal(false);
     setDeleteTargetId(null);
-    load();
   };
 
   const cancelDelete = () => {
@@ -39,7 +35,7 @@ export default function ProductsPage() {
       <tr><td colSpan={5} className="empty-state">No products yet</td></tr>
     );
   } else {
-    productRows = products.map((product) => {
+    productRows = products.map((product: any) => {
       const displayModel = product.model ? product.model : "-";
       const displayDescription = product.description ? product.description : "-";
       const displayCompany = product.company_name ? product.company_name : "-";

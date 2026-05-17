@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, X, PlusCircle } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCustomersList } from "@/hooks/use-customers";
+import { useCompaniesList } from "@/hooks/use-companies";
+import { useProductsList } from "@/hooks/use-products";
+import { useCreateReturn } from "@/hooks/use-returns";
 import ConfirmModal from "@/components/ConfirmModal";
 import SearchableSelect from "@/components/SearchableSelect";
 import AddEntityModal from "@/components/AddEntityModal";
@@ -18,9 +21,10 @@ const channelOptions = [
 
 export default function NewReturnPage() {
   const router = useRouter();
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const { data: customers = [] } = useCustomersList();
+  const { data: companies = [] } = useCompaniesList();
+  const { data: allProducts = [] } = useProductsList();
+  const createReturn = useCreateReturn();
   const [form, setForm] = useState({
     company_id: "",
     customer_id: "",
@@ -35,21 +39,13 @@ export default function NewReturnPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [entityModalType, setEntityModalType] = useState<"customer" | "company" | "product" | null>(null);
 
-  const loadData = () => {
-    Promise.all([
-      api.customers.list(),
-      api.companies.list(),
-      api.products.list(),
-    ]).then(([customersList, companiesList, productsList]) => {
-      setCustomers(customersList);
-      setCompanies(companiesList);
-      setAllProducts(productsList);
-    });
-  };
+  const [localCustomers, setLocalCustomers] = useState<any[] | null>(null);
+  const [localCompanies, setLocalCompanies] = useState<any[] | null>(null);
+  const [localProducts, setLocalProducts] = useState<any[] | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const resolvedCustomers = localCustomers || customers;
+  const resolvedCompanies = localCompanies || companies;
+  const resolvedProducts = localProducts || allProducts;
 
   const updateField = (field: string) => {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -67,11 +63,11 @@ export default function NewReturnPage() {
   };
 
   const confirmCreate = async () => {
-    const oldSerialValue = form.old_serial_number ? form.old_serial_number : undefined;
-    const contactPersonValue = form.contact_person ? form.contact_person : undefined;
-    const channelValue = form.communication_channel ? form.communication_channel : undefined;
-    const communicationNotesValue = form.communication_notes ? form.communication_notes : undefined;
-    await api.returns.create({
+    const oldSerialValue = form.old_serial_number || undefined;
+    const contactPersonValue = form.contact_person || undefined;
+    const channelValue = form.communication_channel || undefined;
+    const communicationNotesValue = form.communication_notes || undefined;
+    await createReturn.mutateAsync({
       customer_id: Number(form.customer_id),
       product_id: Number(form.product_id),
       old_serial_number: oldSerialValue,
@@ -87,33 +83,33 @@ export default function NewReturnPage() {
 
   const handleAddEntityConfirm = (newEntity: any) => {
     if (entityModalType === "customer") {
-      setCustomers([...customers, newEntity]);
+      setLocalCustomers([...resolvedCustomers, newEntity]);
       setForm({ ...form, customer_id: String(newEntity.id) });
     } else if (entityModalType === "company") {
-      setCompanies([...companies, newEntity]);
+      setLocalCompanies([...resolvedCompanies, newEntity]);
       setForm({ ...form, company_id: String(newEntity.id), product_id: "" });
     } else if (entityModalType === "product") {
-      setAllProducts([...allProducts, newEntity]);
+      setLocalProducts([...resolvedProducts, newEntity]);
       setForm({ ...form, product_id: String(newEntity.id) });
     }
     setEntityModalType(null);
   };
 
-  const customerOptions = customers.map((customer) => ({
+  const customerOptions = resolvedCustomers.map((customer: any) => ({
     value: String(customer.id),
     label: customer.name,
   }));
 
-  const companyOptions = companies.map((company) => ({
+  const companyOptions = resolvedCompanies.map((company: any) => ({
     value: String(company.id),
     label: company.name,
   }));
 
   const filteredProducts = form.company_id
-    ? allProducts.filter((product) => String(product.company_id) === form.company_id)
+    ? resolvedProducts.filter((product: any) => String(product.company_id) === form.company_id)
     : [];
 
-  const productOptions = filteredProducts.map((product) => ({
+  const productOptions = filteredProducts.map((product: any) => ({
     value: String(product.id),
     label: product.name,
   }));

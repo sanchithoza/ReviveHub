@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCreateCustomer } from "@/hooks/use-customers";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function NewCustomerPage() {
   const router = useRouter();
+  const createCustomer = useCreateCustomer();
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "" });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -23,7 +24,7 @@ export default function NewCustomerPage() {
   };
 
   const confirmCreate = async () => {
-    await api.customers.create(form);
+    await createCustomer.mutateAsync(form);
     setShowConfirmModal(false);
     router.push("/customers");
   };

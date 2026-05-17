@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Plus } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCustomersList, useDeleteCustomer } from "@/hooks/use-customers";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<any[]>([]);
+  const { data: customers = [] } = useCustomersList();
+  const deleteCustomer = useDeleteCustomer();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-
-  const load = () => api.customers.list().then(setCustomers);
-
-  useEffect(() => { load(); }, []);
 
   const handleDelete = (id: number) => {
     setDeleteTargetId(id);
@@ -22,10 +19,9 @@ export default function CustomersPage() {
 
   const confirmDelete = async () => {
     if (deleteTargetId === null) return;
-    await api.customers.delete(deleteTargetId);
+    await deleteCustomer.mutateAsync(deleteTargetId);
     setShowDeleteModal(false);
     setDeleteTargetId(null);
-    load();
   };
 
   const cancelDelete = () => {
@@ -39,7 +35,7 @@ export default function CustomersPage() {
       <tr><td colSpan={4} className="empty-state">No customers yet</td></tr>
     );
   } else {
-    customerRows = customers.map((customer) => {
+    customerRows = customers.map((customer: any) => {
       const displayEmail = customer.email ? customer.email : "-";
       const displayPhone = customer.phone ? customer.phone : "-";
 

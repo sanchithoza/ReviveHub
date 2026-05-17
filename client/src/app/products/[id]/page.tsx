@@ -3,29 +3,25 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Save, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCompaniesList } from "@/hooks/use-companies";
+import { useProductDetails, useUpdateProduct } from "@/hooks/use-products";
 import ConfirmModal from "@/components/ConfirmModal";
 import SearchableSelect from "@/components/SearchableSelect";
 
 export default function EditProductPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const [companies, setCompanies] = useState<any[]>([]);
+  const { data: companies = [] } = useCompaniesList();
+  const { data: product } = useProductDetails(Number(id));
+  const updateProduct = useUpdateProduct();
   const [form, setForm] = useState({ name: "", model: "", description: "", company_id: "" });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      api.companies.list(),
-      api.products.get(Number(id)),
-    ]).then(([companiesList, product]) => {
-      setCompanies(companiesList);
-      const displayModel = product.model ? product.model : "";
-      const displayDescription = product.description ? product.description : "";
-      const displayCompany = product.company_id ? String(product.company_id) : "";
-      setForm({ name: product.name, model: displayModel, description: displayDescription, company_id: displayCompany });
-    });
-  }, [id]);
+    if (product) {
+      setForm({ name: product.name, model: product.model || "", description: product.description || "", company_id: product.company_id ? String(product.company_id) : "" });
+    }
+  }, [product]);
 
   const updateField = (field: string) => {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -39,17 +35,20 @@ export default function EditProductPage() {
   };
 
   const confirmUpdate = async () => {
-    await api.products.update(Number(id), {
-      name: form.name,
-      company_id: Number(form.company_id),
-      model: form.model ? form.model : undefined,
-      description: form.description ? form.description : undefined,
+    await updateProduct.mutateAsync({
+      id: Number(id),
+      data: {
+        name: form.name,
+        company_id: Number(form.company_id),
+        model: form.model || undefined,
+        description: form.description || undefined,
+      },
     });
     setShowConfirmModal(false);
     router.push("/products");
   };
 
-  const companyOptions = companies.map((company) => ({
+  const companyOptions = companies.map((company: any) => ({
     value: String(company.id),
     label: company.name,
   }));

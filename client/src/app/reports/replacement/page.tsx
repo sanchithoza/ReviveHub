@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Download, FileText, Search } from "lucide-react";
-import { api } from "@/lib/api";
+import { useReturnsList } from "@/hooks/use-returns";
+import { useCompaniesList } from "@/hooks/use-companies";
+import { useCustomersList } from "@/hooks/use-customers";
+import { useProductsList } from "@/hooks/use-products";
 import SearchableSelectModal from "@/components/SearchableSelectModal";
 
 interface ColumnOption {
@@ -68,10 +71,10 @@ function formatDateForDisplay(dateString: string | null): string {
 }
 
 export default function ReplacementReportPage() {
-  const [allReturns, setAllReturns] = useState<ReturnRow[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const { data: allReturns = [] } = useReturnsList();
+  const { data: companies = [] } = useCompaniesList();
+  const { data: customers = [] } = useCustomersList();
+  const { data: products = [] } = useProductsList();
 
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCompany, setFilterCompany] = useState("");
@@ -84,22 +87,8 @@ export default function ReplacementReportPage() {
   const defaultColumns = ["id", "company_name", "customer_name", "product_name", "old_serial_number", "new_serial_number", "status", "received_from_customer_date", "sent_to_customer_date"];
   const [selectedColumns, setSelectedColumns] = useState<string[]>(defaultColumns);
 
-  useEffect(() => {
-    Promise.all([
-      api.returns.list(),
-      api.companies.list(),
-      api.customers.list(),
-      api.products.list(),
-    ]).then(([returnsData, companiesData, customersData, productsData]) => {
-      setAllReturns(returnsData);
-      setCompanies(companiesData);
-      setCustomers(customersData);
-      setProducts(productsData);
-    });
-  }, []);
-
   const filteredReturns = useMemo(() => {
-    return allReturns.filter((returnItem) => {
+    return allReturns.filter((returnItem: ReturnRow) => {
       if (filterStatus !== "") {
         if (returnItem.status !== filterStatus) {
           return false;
@@ -311,7 +300,7 @@ export default function ReplacementReportPage() {
               {filteredReturns.length === 0 ? (
                 <tr><td colSpan={selectedColumns.length} className="empty-state">No records found.</td></tr>
               ) : (
-                filteredReturns.map((returnItem) => (
+                filteredReturns.map((returnItem: ReturnRow) => (
                   <tr key={returnItem.id}>
                     {ALL_COLUMNS.filter((col) => selectedColumns.includes(col.key)).map((col) => (
                       <td key={col.key}>{getCellValue(returnItem, col.key)}</td>

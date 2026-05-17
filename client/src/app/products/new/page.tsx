@@ -1,21 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCompaniesList } from "@/hooks/use-companies";
+import { useCreateProduct } from "@/hooks/use-products";
 import ConfirmModal from "@/components/ConfirmModal";
 import SearchableSelect from "@/components/SearchableSelect";
 
 export default function NewProductPage() {
   const router = useRouter();
-  const [companies, setCompanies] = useState<any[]>([]);
+  const { data: companies = [] } = useCompaniesList();
+  const createProduct = useCreateProduct();
   const [form, setForm] = useState({ name: "", model: "", description: "", company_id: "" });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-  useEffect(() => {
-    api.companies.list().then(setCompanies);
-  }, []);
 
   const updateField = (field: string) => {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -29,17 +27,17 @@ export default function NewProductPage() {
   };
 
   const confirmCreate = async () => {
-    await api.products.create({
+    await createProduct.mutateAsync({
       name: form.name,
       company_id: Number(form.company_id),
-      model: form.model ? form.model : undefined,
-      description: form.description ? form.description : undefined,
+      model: form.model || undefined,
+      description: form.description || undefined,
     });
     setShowConfirmModal(false);
     router.push("/products");
   };
 
-  const companyOptions = companies.map((company) => ({
+  const companyOptions = companies.map((company: any) => ({
     value: String(company.id),
     label: company.name,
   }));

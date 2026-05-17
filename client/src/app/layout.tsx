@@ -1,9 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { ChevronDown } from "lucide-react";
-import { api } from "@/lib/api";
+import Sidebar from "./sidebar";
+import Providers from "./providers";
 import "./globals.css";
 
 export default function RootLayout({
@@ -11,129 +7,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mastersOpen, setMastersOpen] = useState(false);
-  const [transactionOpen, setTransactionOpen] = useState(false);
-  const [reportsOpen, setReportsOpen] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
-
-  useEffect(() => {
-    api.returns.list().then((returnsData) => {
-      const count = returnsData.filter((returnItem: any) => returnItem.status !== "completed").length;
-      setPendingCount(count);
-    });
-  }, []);
-
-  const handleSidebarToggle = () => {
-    setSidebarOpen(sidebarOpen === false);
-  };
-
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-  };
-
-  const handleMastersToggle = () => {
-    setMastersOpen(mastersOpen === false);
-  };
-
-  const handleTransactionToggle = () => {
-    setTransactionOpen(transactionOpen === false);
-  };
-
-  const handleReportsToggle = () => {
-    setReportsOpen(reportsOpen === false);
-  };
-
-  let overlayClassName = "sidebar-overlay";
-  if (sidebarOpen) {
-    overlayClassName = "sidebar-overlay open";
-  }
-
-  let sidebarClassName = "sidebar";
-  if (sidebarOpen) {
-    sidebarClassName = "sidebar open";
-  }
-
   return (
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body>
-        <div className="layout">
-          <div
-            className={overlayClassName}
-            onClick={closeSidebar}
-          />
-          <aside className={sidebarClassName}>
-            <h1>Replacement Tracker</h1>
-            <nav>
-              <Link href="/" onClick={closeSidebar}>Dashboard</Link>
-              <button
-                type="button"
-                className="sidebar-dropdown-toggle"
-                onClick={handleMastersToggle}
-                aria-expanded={mastersOpen}
-              >
-                <span>Masters</span>
-                <ChevronDown
-                  size={14}
-                  className={mastersOpen ? "sidebar-chevron open" : "sidebar-chevron"}
-                />
-              </button>
-              {mastersOpen ? (
-                <div className="sidebar-submenu">
-                  <Link href="/companies" onClick={closeSidebar}>Companies</Link>
-                  <Link href="/customers" onClick={closeSidebar}>Customers</Link>
-                  <Link href="/products" onClick={closeSidebar}>Products</Link>
-                </div>
-              ) : null}
-              <button
-                type="button"
-                className="sidebar-dropdown-toggle"
-                onClick={handleTransactionToggle}
-                aria-expanded={transactionOpen}
-              >
-                <span>Transaction</span>
-                <ChevronDown
-                  size={14}
-                  className={transactionOpen ? "sidebar-chevron open" : "sidebar-chevron"}
-                />
-              </button>
-              {transactionOpen ? (
-                <div className="sidebar-submenu">
-                  <Link href="/returns" onClick={closeSidebar} className="sidebar-link-with-badge">
-                    <span>Replacement</span>
-                    {pendingCount > 0 ? (
-                      <span className="sidebar-badge">{pendingCount}</span>
-                    ) : null}
-                  </Link>
-                </div>
-              ) : null}
-              <button
-                type="button"
-                className="sidebar-dropdown-toggle"
-                onClick={handleReportsToggle}
-                aria-expanded={reportsOpen}
-              >
-                <span>Reports</span>
-                <ChevronDown
-                  size={14}
-                  className={reportsOpen ? "sidebar-chevron open" : "sidebar-chevron"}
-                />
-              </button>
-              {reportsOpen ? (
-                <div className="sidebar-submenu">
-                  <Link href="/reports/replacement" onClick={closeSidebar}>Replacement</Link>
-                </div>
-              ) : null}
-            </nav>
-          </aside>
-          <main className="main">
-            <button className="hamburger" onClick={handleSidebarToggle}>☰</button>
-            {children}
-          </main>
-        </div>
+        <Providers>
+          <div className="layout">
+            <Sidebar />
+            <main className="main">
+              {children}
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

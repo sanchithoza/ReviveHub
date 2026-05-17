@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Plus } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCompaniesList, useDeleteCompany } from "@/hooks/use-companies";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function CompaniesPage() {
-  const [companies, setCompanies] = useState<any[]>([]);
+  const { data: companies = [] } = useCompaniesList();
+  const deleteCompany = useDeleteCompany();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
-
-  const load = () => api.companies.list().then(setCompanies);
-
-  useEffect(() => { load(); }, []);
 
   const handleDelete = (id: number) => {
     setDeleteTargetId(id);
@@ -22,10 +19,9 @@ export default function CompaniesPage() {
 
   const confirmDelete = async () => {
     if (deleteTargetId === null) return;
-    await api.companies.delete(deleteTargetId);
+    await deleteCompany.mutateAsync(deleteTargetId);
     setShowDeleteModal(false);
     setDeleteTargetId(null);
-    load();
   };
 
   const cancelDelete = () => {
@@ -39,7 +35,7 @@ export default function CompaniesPage() {
       <tr><td colSpan={4} className="empty-state">No companies yet</td></tr>
     );
   } else {
-    companyRows = companies.map((company) => {
+    companyRows = companies.map((company: any) => {
       const displayEmail = company.email ? company.email : "-";
       const displayPhone = company.phone ? company.phone : "-";
 

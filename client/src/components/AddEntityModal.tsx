@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Save, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCreateCustomer } from "@/hooks/use-customers";
+import { useCreateCompany } from "@/hooks/use-companies";
+import { useCreateProduct } from "@/hooks/use-products";
 
 interface AddEntityModalProps {
   isOpen: boolean;
@@ -47,6 +49,9 @@ export default function AddEntityModal({
   const [saving, setSaving] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const config = ENTITY_CONFIG[entityType];
+  const createCustomer = useCreateCustomer();
+  const createCompany = useCreateCompany();
+  const createProduct = useCreateProduct();
 
   useEffect(() => {
     if (isOpen) {
@@ -74,21 +79,21 @@ export default function AddEntityModal({
     try {
       let newEntity: any;
       if (entityType === "customer") {
-        newEntity = await api.customers.create({
+        newEntity = await createCustomer.mutateAsync({
           name: form.name.trim(),
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
           address: form.address.trim() || undefined,
         });
       } else if (entityType === "company") {
-        newEntity = await api.companies.create({
+        newEntity = await createCompany.mutateAsync({
           name: form.name.trim(),
           email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
           address: form.address.trim() || undefined,
         });
       } else {
-        newEntity = await api.products.create({
+        newEntity = await createProduct.mutateAsync({
           name: form.name.trim(),
           model: form.model.trim() || undefined,
           description: form.description.trim() || undefined,

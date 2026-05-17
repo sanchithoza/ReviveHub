@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCreateCompany } from "@/hooks/use-companies";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function NewCompanyPage() {
   const router = useRouter();
+  const createCompany = useCreateCompany();
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "" });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -23,7 +24,7 @@ export default function NewCompanyPage() {
   };
 
   const confirmCreate = async () => {
-    await api.companies.create(form);
+    await createCompany.mutateAsync(form);
     setShowConfirmModal(false);
     router.push("/companies");
   };

@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Download, UserCheck, Send } from "lucide-react";
-import { api } from "@/lib/api";
+import {
+  useReturnDetails,
+  useSendReturnToCompany,
+  useReceiveReturnFromCompany,
+  useCompleteReturn,
+} from "@/hooks/use-returns";
 import ConfirmModal from "@/components/ConfirmModal";
 
 const statusLabels: Record<string, string> = {
@@ -25,24 +30,20 @@ function formatDateTime(dateString: string): string {
 export default function ReturnDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const [currentReturn, setCurrentReturn] = useState<any>(null);
+  const { data: currentReturn } = useReturnDetails(Number(id));
+  const sendReturnToCompany = useSendReturnToCompany();
+  const receiveReturnFromCompany = useReceiveReturnFromCompany();
+  const completeReturn = useCompleteReturn();
   const [newSerialNumber, setNewSerialNumber] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<WorkflowAction | null>(null);
 
-  const load = () => {
-    api.returns.get(Number(id)).then(setCurrentReturn);
-  };
-
-  useEffect(() => { load(); }, [id]);
-
   if (!currentReturn) return <div className="card">Loading...</div>;
 
   const handleSendToCompany = async () => {
-    await api.returns.sendToCompany(Number(id));
+    await sendReturnToCompany.mutateAsync(Number(id));
     setShowConfirmModal(false);
     setPendingAction(null);
-    load();
   };
 
   const handleReceiveFromCompany = async () => {
@@ -50,17 +51,15 @@ export default function ReturnDetailPage() {
       alert("Enter the new serial number received from the company.");
       return;
     }
-    await api.returns.receiveFromCompany(Number(id), { new_serial_number: newSerialNumber });
+    await receiveReturnFromCompany.mutateAsync({ id: Number(id), data: { new_serial_number: newSerialNumber } });
     setShowConfirmModal(false);
     setPendingAction(null);
-    load();
   };
 
   const handleComplete = async () => {
-    await api.returns.complete(Number(id));
+    await completeReturn.mutateAsync(Number(id));
     setShowConfirmModal(false);
     setPendingAction(null);
-    load();
   };
 
   const promptAction = (action: WorkflowAction) => {
@@ -108,8 +107,6 @@ export default function ReturnDetailPage() {
   if (currentReturn.communication_notes) {
     hasCommunication = true;
   }
-
-  const fieldStyles: React.CSSProperties = { fontWeight: 500, color: "#222" };
 
   let workflowContent;
   if (currentReturn.status === "completed") {

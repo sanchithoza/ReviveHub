@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Download, UserCheck, ExternalLink, Plus, Send } from "lucide-react";
-import { api } from "@/lib/api";
+import {
+  useReturnsList,
+  useSendReturnToCompany,
+  useReceiveReturnFromCompany,
+  useCompleteReturn,
+} from "@/hooks/use-returns";
 import ConfirmModal from "@/components/ConfirmModal";
 
 const statusLabels: Record<string, string> = {
@@ -22,22 +27,21 @@ const statusFilterOptions = [
 ];
 
 export default function ReturnsPage() {
-  const [returns, setReturns] = useState<any[]>([]);
+  const { data: returns = [] } = useReturnsList();
+  const sendReturnToCompany = useSendReturnToCompany();
+  const receiveReturnFromCompany = useReceiveReturnFromCompany();
+  const completeReturn = useCompleteReturn();
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [actionTargetId, setActionTargetId] = useState<number | null>(null);
   const [actionType, setActionType] = useState<string | null>(null);
   const [newSerialInput, setNewSerialInput] = useState("");
 
-  const load = () => api.returns.list().then(setReturns);
-  useEffect(() => { load(); }, []);
-
   const handleSendToCompany = async () => {
     if (actionTargetId === null) return;
-    await api.returns.sendToCompany(actionTargetId);
+    await sendReturnToCompany.mutateAsync(actionTargetId);
     setActionTargetId(null);
     setActionType(null);
-    load();
   };
 
   const handleReceiveFromCompany = async () => {
@@ -46,19 +50,17 @@ export default function ReturnsPage() {
       alert("Enter the new serial number received from the company.");
       return;
     }
-    await api.returns.receiveFromCompany(actionTargetId, { new_serial_number: newSerialInput });
+    await receiveReturnFromCompany.mutateAsync({ id: actionTargetId, data: { new_serial_number: newSerialInput } });
     setActionTargetId(null);
     setActionType(null);
     setNewSerialInput("");
-    load();
   };
 
   const handleComplete = async () => {
     if (actionTargetId === null) return;
-    await api.returns.complete(actionTargetId);
+    await completeReturn.mutateAsync(actionTargetId);
     setActionTargetId(null);
     setActionType(null);
-    load();
   };
 
   const promptAction = (id: number, action: string) => {
@@ -153,7 +155,7 @@ export default function ReturnsPage() {
       <tr><td colSpan={9} className="empty-state">No Replacement records found</td></tr>
     );
   } else {
-    returnRows = filteredReturns.map((returnItem) => {
+    returnRows = filteredReturns.map((returnItem: any) => {
       const companyName = returnItem.company_name ? returnItem.company_name : "-";
       const customerName = returnItem.customer_name ? returnItem.customer_name : "-";
       const productName = returnItem.product_name ? returnItem.product_name : "-";

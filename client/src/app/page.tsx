@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Building2, Users, Package, RotateCcw, Plus, Send, Download, UserCheck, ExternalLink } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCompaniesList } from "@/hooks/use-companies";
+import { useCustomersList } from "@/hooks/use-customers";
+import { useProductsList } from "@/hooks/use-products";
+import { useReturnsList } from "@/hooks/use-returns";
 
 type TimePeriod = "daily" | "weekly" | "monthly" | "yearly";
 
@@ -139,30 +142,22 @@ function ActionButton({ status, returnId }: { status: string; returnId: number }
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ companies: 0, customers: 0, products: 0, returns: 0 });
-  const [returns, setReturns] = useState<any[]>([]);
+  const { data: companiesData = [] } = useCompaniesList();
+  const { data: customersData = [] } = useCustomersList();
+  const { data: productsData = [] } = useProductsList();
+  const { data: returns = [] } = useReturnsList();
   const [statePeriod, setStatePeriod] = useState<TimePeriod>("monthly");
   const [companyPeriod, setCompanyPeriod] = useState<TimePeriod>("monthly");
 
-  useEffect(() => {
-    Promise.all([
-      api.companies.list(),
-      api.customers.list(),
-      api.products.list(),
-      api.returns.list(),
-    ]).then(([companies, customers, products, returnsData]) => {
-      setStats({
-        companies: companies.length,
-        customers: customers.length,
-        products: products.length,
-        returns: returnsData.length,
-      });
-      setReturns(returnsData);
-    });
-  }, []);
+  const stats = {
+    companies: companiesData.length,
+    customers: customersData.length,
+    products: productsData.length,
+    returns: returns.length,
+  };
 
   const stateData = useMemo(() => {
-    const filtered = returns.filter((returnItem) =>
+    const filtered = returns.filter((returnItem: any) =>
       isInPeriod(returnItem.received_from_customer_date, statePeriod),
     );
     const counts: Record<string, number> = {};
@@ -181,7 +176,7 @@ export default function Dashboard() {
   }, [returns, statePeriod]);
 
   const companyData = useMemo(() => {
-    const filtered = returns.filter((returnItem) =>
+    const filtered = returns.filter((returnItem: any) =>
       isInPeriod(returnItem.received_from_customer_date, companyPeriod),
     );
     const counts: Record<string, number> = {};
@@ -203,11 +198,11 @@ export default function Dashboard() {
 
   const activeReturns = useMemo(() => {
     return returns
-      .filter((returnItem) => returnItem.status !== "completed")
+      .filter((returnItem: any) => returnItem.status !== "completed")
       .slice(0, 5);
   }, [returns]);
 
-  const pendingCount = returns.filter((returnItem) => returnItem.status !== "completed").length;
+  const pendingCount = returns.filter((returnItem: any) => returnItem.status !== "completed").length;
 
   const cards = [
     { label: "Companies", count: stats.companies, href: "/companies", color: "#8e44ad", icon: Building2 },
@@ -248,7 +243,7 @@ export default function Dashboard() {
             <Link href="/returns" className="text-sm">View all</Link>
           </div>
           <div className="recent-list">
-            {activeReturns.map((returnItem) => {
+            {activeReturns.map((returnItem: any) => {
               const companyName = returnItem.company_name || "-";
               const customerName = returnItem.customer_name || "-";
               const productName = returnItem.product_name || "-";

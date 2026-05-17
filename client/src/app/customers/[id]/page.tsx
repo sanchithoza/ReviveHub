@@ -3,23 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Save, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCustomerDetails, useUpdateCustomer } from "@/hooks/use-customers";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function EditCustomerPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const { data: customer } = useCustomerDetails(Number(id));
+  const updateCustomer = useUpdateCustomer();
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "" });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
-    api.customers.get(Number(id)).then((customer) => {
-      const displayEmail = customer.email ? customer.email : "";
-      const displayPhone = customer.phone ? customer.phone : "";
-      const displayAddress = customer.address ? customer.address : "";
-      setForm({ name: customer.name, email: displayEmail, phone: displayPhone, address: displayAddress });
-    });
-  }, [id]);
+    if (customer) {
+      setForm({ name: customer.name, email: customer.email || "", phone: customer.phone || "", address: customer.address || "" });
+    }
+  }, [customer]);
 
   const updateField = (field: string) => {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -33,7 +32,7 @@ export default function EditCustomerPage() {
   };
 
   const confirmUpdate = async () => {
-    await api.customers.update(Number(id), form);
+    await updateCustomer.mutateAsync({ id: Number(id), data: form });
     setShowConfirmModal(false);
     router.push("/customers");
   };

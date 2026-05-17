@@ -3,23 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Save, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCompanyDetails, useUpdateCompany } from "@/hooks/use-companies";
 import ConfirmModal from "@/components/ConfirmModal";
 
 export default function EditCompanyPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const { data: company } = useCompanyDetails(Number(id));
+  const updateCompany = useUpdateCompany();
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "" });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
-    api.companies.get(Number(id)).then((company) => {
-      const displayEmail = company.email ? company.email : "";
-      const displayPhone = company.phone ? company.phone : "";
-      const displayAddress = company.address ? company.address : "";
-      setForm({ name: company.name, email: displayEmail, phone: displayPhone, address: displayAddress });
-    });
-  }, [id]);
+    if (company) {
+      setForm({ name: company.name, email: company.email || "", phone: company.phone || "", address: company.address || "" });
+    }
+  }, [company]);
 
   const updateField = (field: string) => {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -33,7 +32,7 @@ export default function EditCompanyPage() {
   };
 
   const confirmUpdate = async () => {
-    await api.companies.update(Number(id), form);
+    await updateCompany.mutateAsync({ id: Number(id), data: form });
     setShowConfirmModal(false);
     router.push("/companies");
   };
