@@ -1,10 +1,12 @@
 import path from "path";
 import type { Knex } from "knex";
 
+const databasePath = process.env.DATABASE_PATH || path.resolve(__dirname, "../../data.db");
+
 const config: Knex.Config = {
   client: "better-sqlite3",
   connection: {
-    filename: path.resolve(__dirname, "../../data.db"),
+    filename: databasePath,
   },
   useNullAsDefault: true,
   migrations: {
