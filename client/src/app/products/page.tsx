@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useProductsList, useDeleteProduct } from "@/hooks/use-products";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ProductsPage() {
+  const { user } = useAuth();
   const { data: products = [] } = useProductsList();
   const deleteProduct = useDeleteProduct();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -47,8 +49,10 @@ export default function ProductsPage() {
           <td>{displayModel}</td>
           <td style={{ maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayDescription}</td>
           <td className="text-right">
-            <div className="flex gap-1" style={{ justifyContent: "flex-end" }}><Link href={`/products/${product.id}`} className="btn btn-sm btn-primary" aria-label="Edit product"><Pencil size={14} /></Link>
-            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(product.id)} aria-label="Delete product"><Trash2 size={14} /></button></div>
+            <div className="flex gap-1" style={{ justifyContent: "flex-end" }}>
+              {user?.view_only ? null : <Link href={`/products/${product.id}`} className="btn btn-sm btn-primary" aria-label="Edit product"><Pencil size={14} /></Link>}
+              {user?.view_only ? null : <button className="btn btn-sm btn-danger" onClick={() => handleDelete(product.id)} aria-label="Delete product"><Trash2 size={14} /></button>}
+            </div>
           </td>
         </tr>
       );
@@ -59,7 +63,7 @@ export default function ProductsPage() {
     <>
       <div className="page-header">
         <h2>Products</h2>
-        <Link href="/products/new" className="btn btn-primary"><Plus size={16} /> New Product</Link>
+        {user?.view_only ? null : <Link href="/products/new" className="btn btn-primary"><Plus size={16} /> New Product</Link>}
       </div>
       <div className="table-wrapper"><table>
         <thead>

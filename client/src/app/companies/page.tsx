@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Eye } from "lucide-react";
 import { useCompaniesList, useDeleteCompany } from "@/hooks/use-companies";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CompaniesPage() {
+  const { user } = useAuth();
   const { data: companies = [] } = useCompaniesList();
   const deleteCompany = useDeleteCompany();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -45,8 +47,10 @@ export default function CompaniesPage() {
           <td>{displayEmail}</td>
           <td>{displayPhone}</td>
           <td className="text-right">
-            <div className="flex gap-1" style={{ justifyContent: "flex-end" }}><Link href={`/companies/${company.id}`} className="btn btn-sm btn-primary" aria-label="Edit company"><Pencil size={14} /></Link>
-            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(company.id)} aria-label="Delete company"><Trash2 size={14} /></button></div>
+            <div className="flex gap-1" style={{ justifyContent: "flex-end" }}>
+              {user?.view_only ? null : <Link href={`/companies/${company.id}`} className="btn btn-sm btn-primary" aria-label="Edit company"><Pencil size={14} /></Link>}
+              {user?.view_only ? null : <button className="btn btn-sm btn-danger" onClick={() => handleDelete(company.id)} aria-label="Delete company"><Trash2 size={14} /></button>}
+            </div>
           </td>
         </tr>
       );
@@ -57,7 +61,7 @@ export default function CompaniesPage() {
     <>
       <div className="page-header">
         <h2>Companies</h2>
-        <Link href="/companies/new" className="btn btn-primary"><Plus size={16} /> New Company</Link>
+        {user?.view_only ? null : <Link href="/companies/new" className="btn btn-primary"><Plus size={16} /> New Company</Link>}
       </div>
       <div className="table-wrapper"><table>
         <thead>

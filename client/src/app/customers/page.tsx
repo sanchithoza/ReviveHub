@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useCustomersList, useDeleteCustomer } from "@/hooks/use-customers";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CustomersPage() {
+  const { user } = useAuth();
   const { data: customers = [] } = useCustomersList();
   const deleteCustomer = useDeleteCustomer();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -45,8 +47,10 @@ export default function CustomersPage() {
           <td>{displayEmail}</td>
           <td>{displayPhone}</td>
           <td className="text-right">
-            <div className="flex gap-1" style={{ justifyContent: "flex-end" }}><Link href={`/customers/${customer.id}`} className="btn btn-sm btn-primary" aria-label="Edit customer"><Pencil size={14} /></Link>
-            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(customer.id)} aria-label="Delete customer"><Trash2 size={14} /></button></div>
+            <div className="flex gap-1" style={{ justifyContent: "flex-end" }}>
+              {user?.view_only ? null : <Link href={`/customers/${customer.id}`} className="btn btn-sm btn-primary" aria-label="Edit customer"><Pencil size={14} /></Link>}
+              {user?.view_only ? null : <button className="btn btn-sm btn-danger" onClick={() => handleDelete(customer.id)} aria-label="Delete customer"><Trash2 size={14} /></button>}
+            </div>
           </td>
         </tr>
       );
@@ -57,7 +61,7 @@ export default function CustomersPage() {
     <>
       <div className="page-header">
         <h2>Customers</h2>
-        <Link href="/customers/new" className="btn btn-primary"><Plus size={16} /> New Customer</Link>
+        {user?.view_only ? null : <Link href="/customers/new" className="btn btn-primary"><Plus size={16} /> New Customer</Link>}
       </div>
       <div className="table-wrapper"><table>
         <thead>

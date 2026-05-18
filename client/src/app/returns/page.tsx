@@ -10,6 +10,7 @@ import {
   useCompleteReturn,
 } from "@/hooks/use-returns";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useAuth } from "@/context/AuthContext";
 
 const statusLabels: Record<string, string> = {
   received_from_customer: "Received from Customer",
@@ -27,6 +28,7 @@ const statusFilterOptions = [
 ];
 
 export default function ReturnsPage() {
+  const { user } = useAuth();
   const { data: returns = [] } = useReturnsList();
   const sendReturnToCompany = useSendReturnToCompany();
   const receiveReturnFromCompany = useReceiveReturnFromCompany();
@@ -164,7 +166,9 @@ export default function ReturnsPage() {
       const statusLabel = statusLabels[returnItem.status] ? statusLabels[returnItem.status] : returnItem.status;
 
       let actionButton;
-      if (returnItem.status === "received_from_customer") {
+      if (user?.view_only) {
+        actionButton = null;
+      } else if (returnItem.status === "received_from_customer") {
         actionButton = (
           <button className="btn btn-sm btn-primary" onClick={() => promptAction(returnItem.id, "send-to-company")} aria-label="Send to Company"><Send size={14} /></button>
         );
@@ -198,7 +202,7 @@ export default function ReturnsPage() {
     <>
       <div className="page-header">
         <h2>Replacement Transactions</h2>
-        <Link href="/returns/new" className="btn btn-primary"><Plus size={16} /> New Replacement</Link>
+        {user?.view_only ? null : <Link href="/returns/new" className="btn btn-primary"><Plus size={16} /> New Replacement</Link>}
       </div>
       <div className="flex gap-1" style={{ marginBottom: "1rem", alignItems: "center" }}>
         <input

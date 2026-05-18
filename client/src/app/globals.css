@@ -397,6 +397,9 @@ select {
 .badge-shipped { background: #cce5ff; color: #002266; }
 .badge-returned { background: #f8d7da; color: #721c24; }
 .badge-with_customer { background: #fff3cd; color: #664d03; }
+.badge-admin { background: #0f3460; color: #fff; }
+.badge-operator { background: #27ae60; color: #fff; }
+.badge-viewer { background: #8e44ad; color: #fff; }
 
 /* ===== DASHBOARD GRID ===== */
 .stats-grid {
@@ -1244,4 +1247,167 @@ select {
     width: 24px;
     font-size: 0.78rem;
   }
+}
+
+/* ===== LOGIN PAGE ===== */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #1a1a2e;
+  padding: 1rem;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.login-card h1 {
+  font-size: 1.5rem;
+  color: #1a1a2e;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.login-subtitle {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.login-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+/* ===== SIDEBAR FOOTER ===== */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav {
+  flex: 1;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid #2a2a4e;
+  margin-top: auto;
+}
+
+.sidebar-user {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-username {
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  font-weight: 600;
+}
+
+.sidebar-role {
+  font-size: 0.72rem;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.sidebar-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: none;
+  border: 1px solid #3a3a5e;
+  border-radius: 4px;
+  color: #b8b8cc;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-logout-btn:hover {
+  background: #2a2a4e;
+  color: #fff;
+  border-color: #5a5a7e;
+}
+
+/* ===== VIEW-ONLY NOTICE POPUP ===== */
+.view-only-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.view-only-popup {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90vw;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.view-only-popup h3 {
+  font-size: 1.1rem;
+  color: #c0392b;
+  margin-bottom: 0.75rem;
+}
+
+.view-only-popup p {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1.25rem;
+}
+
+.view-only-popup .btn {
+  min-width: 100px;
+  justify-content: center;
+}
+
+/* ===== VIEW-ONLY BANNER ===== */
+.view-only-banner {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: #664d03;
+  text-align: center;
+}
+
+/* ===== LOADING SCREEN ===== */
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #666;
+  font-size: 1rem;
 }

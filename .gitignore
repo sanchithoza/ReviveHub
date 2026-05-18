@@ -8,3 +8,5 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 server-test*.txt
+server/server_out*.txt
+server/server_err*.txt

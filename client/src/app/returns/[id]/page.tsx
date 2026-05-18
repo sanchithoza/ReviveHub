@@ -10,6 +10,7 @@ import {
   useCompleteReturn,
 } from "@/hooks/use-returns";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useAuth } from "@/context/AuthContext";
 
 const statusLabels: Record<string, string> = {
   received_from_customer: "Received from Customer",
@@ -30,6 +31,7 @@ function formatDateTime(dateString: string): string {
 export default function ReturnDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const { data: currentReturn } = useReturnDetails(Number(id));
   const sendReturnToCompany = useSendReturnToCompany();
   const receiveReturnFromCompany = useReceiveReturnFromCompany();
@@ -126,7 +128,7 @@ export default function ReturnDetailPage() {
           <h3>Send to Company</h3>
           <p className="text-muted">The unit has been received from the customer. Send it to the company for a replacement.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => promptAction("send-to-company")}><Send size={16} /> Send to Company</button>
+        {user?.view_only ? null : <button className="btn btn-primary" onClick={() => promptAction("send-to-company")}><Send size={16} /> Send to Company</button>}
       </div>
     );
   } else if (currentReturn.status === "sent_to_company") {
@@ -145,7 +147,7 @@ export default function ReturnDetailPage() {
             <input value={newSerialNumber} onChange={handleNewSerialChange} placeholder="Enter new serial number" />
           </div>
         </div>
-        <button className="btn btn-success" onClick={() => promptAction("receive-from-company")}><Download size={16} /> Receive from Company</button>
+        {user?.view_only ? null : <button className="btn btn-success" onClick={() => promptAction("receive-from-company")}><Download size={16} /> Receive from Company</button>}
       </div>
     );
   } else if (currentReturn.status === "received_from_company") {
@@ -156,7 +158,7 @@ export default function ReturnDetailPage() {
           <h3>Give to Customer</h3>
           <p className="text-muted">The replacement has been received from the company. Give it to the customer to complete the process.</p>
         </div>
-        <button className="btn btn-success" onClick={() => promptAction("complete")}><UserCheck size={16} /> Give to Customer</button>
+        {user?.view_only ? null : <button className="btn btn-success" onClick={() => promptAction("complete")}><UserCheck size={16} /> Give to Customer</button>}
       </div>
     );
   }

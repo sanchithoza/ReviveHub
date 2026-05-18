@@ -1,13 +1,17 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import jwt from "@fastify/jwt";
 import companyRoutes from "./routes/companies";
 import customerRoutes from "./routes/customers";
 import productRoutes from "./routes/products";
 import returnRoutes from "./routes/returns";
+import authRoutes from "./routes/auth";
+import { authenticate } from "./middleware/auth";
 
 const port = parseInt(process.env.PORT || "3001", 10);
 const corsOrigin = process.env.CORS_ORIGIN || "true";
+const jwtSecret = process.env.JWT_SECRET || "fallback_secret";
 
 function resolveCorsOrigin(rawOrigin: string): boolean | string {
   if (rawOrigin === "true") {
@@ -29,10 +33,13 @@ async function main() {
     methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"],
   });
 
+  await server.register(jwt, { secret: jwtSecret });
+
   server.get("/health", async () => {
     return { status: "ok" };
   });
 
+  await server.register(authRoutes);
   await server.register(companyRoutes);
   await server.register(customerRoutes);
   await server.register(productRoutes);

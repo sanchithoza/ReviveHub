@@ -7,6 +7,7 @@ import { useCompaniesList } from "@/hooks/use-companies";
 import { useCustomersList } from "@/hooks/use-customers";
 import { useProductsList } from "@/hooks/use-products";
 import { useReturnsList } from "@/hooks/use-returns";
+import { useAuth } from "@/context/AuthContext";
 
 type TimePeriod = "daily" | "weekly" | "monthly" | "yearly";
 
@@ -142,6 +143,7 @@ function ActionButton({ status, returnId }: { status: string; returnId: number }
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const { data: companiesData = [] } = useCompaniesList();
   const { data: customersData = [] } = useCustomersList();
   const { data: productsData = [] } = useProductsList();
@@ -215,9 +217,11 @@ export default function Dashboard() {
     <>
       <div className="page-header">
         <h2>Dashboard</h2>
-        <Link href="/returns/new" className="btn btn-primary">
-          <Plus size={16} /> New Replacement
-        </Link>
+        {user?.view_only ? null : (
+          <Link href="/returns/new" className="btn btn-primary">
+            <Plus size={16} /> New Replacement
+          </Link>
+        )}
       </div>
       <div className="stats-grid">
         {cards.map((item) => {

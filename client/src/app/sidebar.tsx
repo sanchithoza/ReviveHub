@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { useReturnsList } from "@/hooks/use-returns";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,6 +12,7 @@ export default function Sidebar() {
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [reportsOpen, setReportsOpen] = useState(false);
   const { data: returnsData = [] } = useReturnsList();
+  const { user, logout } = useAuth();
 
   const pendingCount = returnsData.filter(
     (returnItem: any) => returnItem.status !== "completed"
@@ -34,6 +36,11 @@ export default function Sidebar() {
 
   const handleReportsToggle = () => {
     setReportsOpen(reportsOpen === false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/login";
   };
 
   let overlayClassName = "sidebar-overlay";
@@ -71,6 +78,7 @@ export default function Sidebar() {
               <Link href="/companies" onClick={closeSidebar}>Companies</Link>
               <Link href="/customers" onClick={closeSidebar}>Customers</Link>
               <Link href="/products" onClick={closeSidebar}>Products</Link>
+              {user?.role === "admin" ? <Link href="/users" onClick={closeSidebar}>Users</Link> : null}
             </div>
           ) : null}
           <button
@@ -113,6 +121,15 @@ export default function Sidebar() {
             </div>
           ) : null}
         </nav>
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <span className="sidebar-username">{user?.username}</span>
+            <span className="sidebar-role">{user?.role}{user?.view_only ? " (view-only)" : ""}</span>
+          </div>
+          <button type="button" className="sidebar-logout-btn" onClick={handleLogout}>
+            <LogOut size={14} /> Sign Out
+          </button>
+        </div>
       </aside>
     </>
   );

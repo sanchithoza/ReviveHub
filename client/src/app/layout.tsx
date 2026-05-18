@@ -1,5 +1,10 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Sidebar from "./sidebar";
 import Providers from "./providers";
+import AuthGuard from "@/components/AuthGuard";
+import ViewOnlyNotice from "@/components/ViewOnlyNotice";
 import "./globals.css";
 
 export default function RootLayout({
@@ -7,6 +12,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
+
   return (
     <html lang="en">
       <head>
@@ -14,12 +22,19 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <div className="layout">
-            <Sidebar />
-            <main className="main">
-              {children}
-            </main>
-          </div>
+          <ViewOnlyNotice />
+          {isLoginPage ? (
+            children
+          ) : (
+            <AuthGuard>
+              <div className="layout">
+                <Sidebar />
+                <main className="main">
+                  {children}
+                </main>
+              </div>
+            </AuthGuard>
+          )}
         </Providers>
       </body>
     </html>
