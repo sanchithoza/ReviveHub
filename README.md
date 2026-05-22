@@ -48,27 +48,67 @@ ReviveHub/
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18.17+
-- npm
+- Node.js 18.17+ ([download](https://nodejs.org/))
+- npm (ships with Node.js)
+- Windows PowerShell (for `.ps1` scripts) or any terminal (manual setup)
 
-### Setup & Run
+---
 
-```bash
-# 1. Install dependencies & run migrations
+### Option 1 — One-Click Setup & Dev (Recommended)
+
+Run these from the project root in **order**:
+
+#### Step 1: Setup (first time only)
+
+```powershell
 .\setup.ps1
+```
 
-# 2. Start development servers
+**What this does:**
+1. Checks Node.js is installed (auto-installs via winget/Chocolatey if missing)
+2. Runs `npm ci` (or `npm install`) in `server/` — installs backend dependencies
+3. Runs `npm ci` (or `npm install`) in `client/` — installs frontend dependencies
+4. Runs database migrations to create all tables
+5. Seeds the database with a default admin user
+
+#### Step 2: Start development servers
+
+```powershell
 .\devStart.bat
 ```
 
-Or manually:
+Opens two separate terminal windows:
+- **Server** → `http://localhost:3001` (Fastify with hot-reload via tsx watch)
+- **Client** → `http://localhost:3000` (Next.js with Turbopack hot-reload)
+
+Close the windows to stop. No rebuild needed — edits auto-reload.
+
+---
+
+### Option 2 — Full Build & Production Start
+
+```powershell
+.\start.bat
+```
+
+**What this does:**
+1. Checks Node.js is installed
+2. Installs dependencies if `node_modules` is missing in `server/` and `client/`
+3. Runs `deploy.ps1` to build the client (`next build`) and transpile server (`tsc`)
+4. Starts the built server and client in two terminal windows
+
+Use this for a production-like run without a separate deployment step.
+
+---
+
+### Option 3 — Manual Setup
 
 ```bash
 # Terminal 1 — Server
 cd server
 npm install
-npm run migrate
-npm run seed
+npm run migrate      # Create database tables
+npm run seed         # Add default admin user
 npm run dev          # → http://localhost:3001
 
 # Terminal 2 — Client
