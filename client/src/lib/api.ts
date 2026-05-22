@@ -31,6 +31,14 @@ httpClient.interceptors.response.use(
         viewOnlyErrorHandler(error.response.data.error);
       }
     }
+    const serverMessage = error.response?.data?.error;
+    if (serverMessage) {
+      error.userMessage = serverMessage;
+    } else if (error.message === "Network Error") {
+      error.userMessage = "Network error. Please check your connection and try again.";
+    } else {
+      error.userMessage = "An unexpected error occurred. Please try again.";
+    }
     return Promise.reject(error);
   }
 );

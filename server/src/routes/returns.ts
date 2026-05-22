@@ -55,17 +55,22 @@ export default async function returnRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/api/returns",
     { preHandler: [authenticate, authorize("admin", "operator"), checkViewOnly] },
-    async (request) => {
+    async (request, reply) => {
       const body = request.body as {
-        customer_id: number;
-        product_id: number;
+        customer_id?: number;
+        product_id?: number;
         old_serial_number?: string;
         reason?: string;
         notes?: string;
-        contact_person?: string;
-        communication_channel?: string;
-        communication_notes?: string;
       };
+      if (!body.customer_id) {
+        reply.status(400).send({ error: "Customer is required" });
+        return;
+      }
+      if (!body.product_id) {
+        reply.status(400).send({ error: "Product is required" });
+        return;
+      }
       const insertData: Record<string, unknown> = {
         customer_id: body.customer_id,
         product_id: body.product_id,
@@ -80,15 +85,6 @@ export default async function returnRoutes(fastify: FastifyInstance) {
       }
       if (body.notes) {
         insertData.notes = body.notes;
-      }
-      if (body.contact_person) {
-        insertData.contact_person = body.contact_person;
-      }
-      if (body.communication_channel) {
-        insertData.communication_channel = body.communication_channel;
-      }
-      if (body.communication_notes) {
-        insertData.communication_notes = body.communication_notes;
       }
       const [id] = await db("return_transactions").insert(insertData);
       return db("return_transactions").where("id", id).first();

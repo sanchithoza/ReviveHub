@@ -25,9 +25,18 @@ export default async function customerRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/api/customers",
     { preHandler: [authenticate, authorize("admin", "operator"), checkViewOnly] },
-    async (request) => {
-      const body = request.body as { name: string; email?: string; phone?: string; address?: string };
-      const [id] = await db("customers").insert(body);
+    async (request, reply) => {
+      const body = request.body as { name?: string; email?: string; phone?: string; address?: string };
+      if (!body.name || body.name.trim() === "") {
+        reply.status(400).send({ error: "Customer name is required" });
+        return;
+      }
+      const [id] = await db("customers").insert({
+        name: body.name.trim(),
+        email: body.email?.trim() || null,
+        phone: body.phone?.trim() || null,
+        address: body.address?.trim() || null,
+      });
       return db("customers").where("id", id).first();
     }
   );

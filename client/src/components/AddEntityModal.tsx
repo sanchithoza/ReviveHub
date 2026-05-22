@@ -47,6 +47,7 @@ export default function AddEntityModal({
 }: AddEntityModalProps) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
   const config = ENTITY_CONFIG[entityType];
   const createCustomer = useCreateCustomer();
@@ -57,6 +58,7 @@ export default function AddEntityModal({
     if (isOpen) {
       setForm(emptyForm);
       setSaving(false);
+      setErrorMessage("");
       setTimeout(() => nameRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -101,8 +103,12 @@ export default function AddEntityModal({
         });
       }
       onConfirm(newEntity);
-    } catch (error) {
-      console.error("Failed to create", entityType, error);
+    } catch (caughtError: unknown) {
+      let userMessage = "Failed to create. Please try again.";
+      if (caughtError && typeof caughtError === "object" && "userMessage" in caughtError) {
+        userMessage = (caughtError as { userMessage: string }).userMessage;
+      }
+      setErrorMessage(userMessage);
     } finally {
       setSaving(false);
     }
@@ -118,6 +124,7 @@ export default function AddEntityModal({
           <button type="button" className="btn btn-sm" onClick={onCancel} aria-label="Close"><X size={16} /></button>
         </div>
         <form onSubmit={handleSubmit}>
+          {errorMessage ? <p className="login-error" style={{ marginBottom: "0.75rem" }}>{errorMessage}</p> : null}
           <div className="form-group">
             <label>{config.label} *</label>
             <input ref={nameRef} required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder={`Enter ${entityType} name`} />

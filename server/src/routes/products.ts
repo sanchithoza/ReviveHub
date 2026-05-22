@@ -38,9 +38,22 @@ export default async function productRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/api/products",
     { preHandler: [authenticate, authorize("admin", "operator"), checkViewOnly] },
-    async (request) => {
-      const body = request.body as { name: string; company_id: number; model?: string; description?: string };
-      const [id] = await db("products").insert(body);
+    async (request, reply) => {
+      const body = request.body as { name?: string; company_id?: number; model?: string; description?: string };
+      if (!body.name || body.name.trim() === "") {
+        reply.status(400).send({ error: "Product name is required" });
+        return;
+      }
+      if (!body.company_id) {
+        reply.status(400).send({ error: "Company is required" });
+        return;
+      }
+      const [id] = await db("products").insert({
+        name: body.name.trim(),
+        company_id: body.company_id,
+        model: body.model?.trim() || null,
+        description: body.description?.trim() || null,
+      });
       return db("products").where("id", id).first();
     }
   );

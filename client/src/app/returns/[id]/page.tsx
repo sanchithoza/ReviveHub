@@ -99,17 +99,6 @@ export default function ReturnDetailPage() {
   const oldSerialDisplay = currentReturn.old_serial_number ? currentReturn.old_serial_number : "-";
   const newSerialDisplay = currentReturn.new_serial_number ? currentReturn.new_serial_number : "-";
 
-  let hasCommunication = false;
-  if (currentReturn.contact_person) {
-    hasCommunication = true;
-  }
-  if (currentReturn.communication_channel) {
-    hasCommunication = true;
-  }
-  if (currentReturn.communication_notes) {
-    hasCommunication = true;
-  }
-
   let workflowContent;
   if (currentReturn.status === "completed") {
     workflowContent = (
@@ -250,29 +239,6 @@ export default function ReturnDetailPage() {
           <div className="card">
             <div className="detail-section">Notes</div>
             <p className="detail-value-sm" style={{ whiteSpace: "pre-wrap" }}>{currentReturn.notes}</p>
-          </div>
-        ) : null}
-
-        {hasCommunication ? (
-          <div className="card">
-            <div className="detail-section">Communication</div>
-            <div className="detail-field-group">
-              {currentReturn.contact_person ? (
-                <div className="detail-field">
-                  <div className="detail-sublabel">Contact Person</div>
-                  <div className="detail-value-sm">{currentReturn.contact_person}</div>
-                </div>
-              ) : null}
-              {currentReturn.communication_channel ? (
-                <div className="detail-field">
-                  <div className="detail-sublabel">Channel</div>
-                  <div className="detail-value-sm capitalize">{currentReturn.communication_channel.replace("_", " ")}</div>
-                </div>
-              ) : null}
-            </div>
-            {currentReturn.communication_notes ? (
-              <p className="detail-value-sm" style={{ whiteSpace: "pre-wrap", marginTop: "0.4rem" }}>{currentReturn.communication_notes}</p>
-            ) : null}
           </div>
         ) : null}
       </div>

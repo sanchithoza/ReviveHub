@@ -147,11 +147,16 @@ export default async function authRoutes(fastify: FastifyInstance) {
     { preHandler: [authenticate, authorize("admin"), checkViewOnly] },
     async (request, reply) => {
       const { id } = request.params as { id: string };
-      const deleted = await db("users").where("id", id).del();
-      if (!deleted) {
+      const user = await db("users").where("id", id).first();
+      if (!user) {
         reply.status(404).send({ error: "User not found" });
         return;
       }
+      if (user.username === "admin") {
+        reply.status(403).send({ error: "The default admin user cannot be deleted" });
+        return;
+      }
+      await db("users").where("id", id).del();
       return { success: true };
     }
   );

@@ -11,14 +11,6 @@ import ConfirmModal from "@/components/ConfirmModal";
 import SearchableSelect from "@/components/SearchableSelect";
 import AddEntityModal from "@/components/AddEntityModal";
 
-const channelOptions = [
-  { value: "", label: "Select..." },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "portal", label: "Portal" },
-  { value: "in_person", label: "In Person" },
-];
-
 export default function NewReturnPage() {
   const router = useRouter();
   const { data: customers = [] } = useCustomersList();
@@ -32,9 +24,6 @@ export default function NewReturnPage() {
     old_serial_number: "",
     reason: "",
     notes: "",
-    contact_person: "",
-    communication_channel: "",
-    communication_notes: "",
   });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [entityModalType, setEntityModalType] = useState<"customer" | "company" | "product" | null>(null);
@@ -64,18 +53,12 @@ export default function NewReturnPage() {
 
   const confirmCreate = async () => {
     const oldSerialValue = form.old_serial_number || undefined;
-    const contactPersonValue = form.contact_person || undefined;
-    const channelValue = form.communication_channel || undefined;
-    const communicationNotesValue = form.communication_notes || undefined;
     await createReturn.mutateAsync({
       customer_id: Number(form.customer_id),
       product_id: Number(form.product_id),
       old_serial_number: oldSerialValue,
       reason: form.reason,
       notes: form.notes,
-      contact_person: contactPersonValue,
-      communication_channel: channelValue,
-      communication_notes: communicationNotesValue,
     });
     setShowConfirmModal(false);
     router.push("/returns");
@@ -175,27 +158,6 @@ export default function NewReturnPage() {
           <div className="form-group">
             <label>Notes</label>
             <textarea value={form.notes} onChange={updateField("notes")} />
-          </div>
-
-          <h3 className="section-heading">Communication Info</h3>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Contact Person</label>
-              <input value={form.contact_person} onChange={updateField("contact_person")} />
-            </div>
-            <div className="form-group">
-              <label>Channel</label>
-              <SearchableSelect
-                options={channelOptions}
-                value={form.communication_channel}
-                onChange={(value: string) => setForm({ ...form, communication_channel: value })}
-                placeholder="Select channel"
-              />
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Communication Notes</label>
-            <textarea value={form.communication_notes} onChange={updateField("communication_notes")} />
           </div>
 
           <div className="flex gap-1">

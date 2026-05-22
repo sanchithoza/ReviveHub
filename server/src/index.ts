@@ -1,5 +1,5 @@
 import "dotenv/config";
-import Fastify from "fastify";
+import Fastify, { FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import companyRoutes from "./routes/companies";
@@ -25,6 +25,22 @@ function resolveCorsOrigin(rawOrigin: string): boolean | string {
 
 const server = Fastify({
   logger: true,
+});
+
+server.setErrorHandler<FastifyError>((error, request, reply) => {
+  server.log.error(error);
+
+  if (error.statusCode && error.statusCode < 500) {
+    reply.status(error.statusCode).send({ error: error.message });
+    return;
+  }
+
+  if (error.validation) {
+    reply.status(400).send({ error: "Invalid request data" });
+    return;
+  }
+
+  reply.status(500).send({ error: "An unexpected error occurred. Please try again later." });
 });
 
 async function main() {
