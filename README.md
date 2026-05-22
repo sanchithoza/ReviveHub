@@ -91,22 +91,26 @@ npm run dev          # → http://localhost:3000
 - **Authentication** — JWT-based login with role-based access
 - **Roles** — Admin (full access), Operator (CRUD), Viewer (read-only)
 - **View-Only Mode** — Per-user flag that blocks all write operations
+- **Error Handling** — All API errors return consistent JSON with user-friendly messages; input validation prevents 500s on missing required fields
+- **Toast Notifications** — Failed operations show auto-dismissing toast messages; no silent failures
 
 ## API Overview
 
 All API routes are prefixed with `/api`. Authentication is via `Authorization: Bearer <token>` header.
 
-| Endpoint              | Methods       | Auth Required |
-|-----------------------|---------------|---------------|
-| `/auth/login`         | POST          | No            |
-| `/auth/register`      | POST          | Admin         |
-| `/auth/me`            | GET           | Yes           |
-| `/auth/users`         | GET, PUT, DELETE | Admin      |
-| `/companies`          | GET, POST, PUT, DELETE | Yes    |
-| `/customers`          | GET, POST, PUT, DELETE | Yes    |
-| `/products`           | GET, POST, PUT, DELETE | Yes    |
-| `/returns`            | GET, POST     | Yes           |
-| `/returns/:id/*`      | PATCH         | Yes           |
+| Endpoint                              | Methods               | Auth Required |
+|---------------------------------------|-----------------------|---------------|
+| `/auth/login`                         | POST                  | No            |
+| `/auth/register`                      | POST                  | Admin         |
+| `/auth/me`                            | GET                   | Yes           |
+| `/auth/users`                         | GET, POST, PUT, DELETE | Admin        |
+| `/companies`                          | GET, POST, PUT, DELETE | Yes          |
+| `/customers`                          | GET, POST, PUT, DELETE | Yes          |
+| `/products`                           | GET, POST, PUT, DELETE | Yes          |
+| `/returns`                            | GET, POST             | Yes           |
+| `/returns/:id/send-to-company`        | PATCH                 | Yes           |
+| `/returns/:id/receive-from-company`   | PATCH                 | Yes           |
+| `/returns/:id/complete`               | PATCH                 | Yes           |
 
 ## Authorization Model
 

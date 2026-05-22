@@ -26,6 +26,10 @@ Enter your username and password to sign in.
 - After successful login, a JWT token is stored in your browser and used for all subsequent API calls.
 - Click **Sign Out** at the bottom of the sidebar to end your session.
 
+### Error Notifications
+
+When an API operation fails, a red toast notification appears in the top-right corner with a clear message explaining what went wrong. The toast automatically disappears after 5 seconds. This covers all failed saves, deletions, and data loads — no more silent failures or confusing blank pages.
+
 ![Login Screen]
 
 ---
@@ -115,7 +119,6 @@ Received from Company
    - **Old Serial Number** — Serial number of the returned unit.
    - **Reason** — Why the product is being returned.
    - **Notes** — Any additional information.
-   - **Communication Info** — Contact person, channel, and notes (optional).
 3. Confirm to create the replacement record with status **Received from Customer**.
 
 ### Advancing Through Stages
@@ -138,7 +141,7 @@ Click the **View** (external link) icon on any replacement row to see full detai
 - Serial numbers (old and new)
 - Status badge
 - Complete timeline with 4 date stamps
-- Reason, notes, and communication logs
+- Reason and notes
 
 ---
 
@@ -179,6 +182,7 @@ Available only to users with the **admin** role. Located under Masters → **Use
 
 ### Deleting a User
 - Permanently removes the user account.
+- The default **admin** user cannot be deleted for safety.
 
 ---
 
@@ -207,8 +211,10 @@ Available only to users with the **admin** role. Located under Masters → **Use
 | 401 Unauthorized                 | Token expired or missing         | Log out and log in again              |
 | 403 Forbidden on write action    | Account is view-only             | Contact admin to disable view-only    |
 | 403 Forbidden on any action      | Insufficient role                | Contact admin to upgrade role         |
-| "Cannot read properties..." error| Backend not running              | Start the server                      |
-| Blank page on /login             | Already authenticated            | Clears localStorage or wait for redirect |
+| 403 Cannot delete admin user     | Trying to delete default admin   | The default admin account cannot be removed |
+| Red error toast on save/delete   | API validation error             | Read the toast message for what went wrong |
+| "Network error" toast            | Backend not running              | Start the server                      |
+| Blank page on /login             | Already authenticated            | Clear localStorage or wait for redirect |
 
 ---
 
